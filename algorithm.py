@@ -57,7 +57,7 @@ class Hierarchy:
                 bad_triangles = []
                 for tpoly in triangulations:
                     if (is_inside(vertex, tpoly)):
-                        bad_triangles.append(tpoly) # we are appending in bad_triangles as that contains a vertex so that triangle has to be traingulated
+                        bad_triangles.append(tpoly) 
 
                 p_set = []
 
@@ -69,7 +69,8 @@ class Hierarchy:
                             for _edge in _bpoly.E:
                                 if edge == _edge or (edge[1],edge[0]) == _edge:
                                     flag = False
-
+                                    break
+                            if flag == False: break
                         if flag:
                             p_set.append(edge)
 
@@ -95,7 +96,7 @@ class Hierarchy:
                         flag = False
                         break
                 if flag: self.poly_map[tri] = poly
-            
+                # mapping the triangulations with polygons if there is any overlapping
         for tri in triangulations:
             self.nodes.add(tri)
             self.adj[tri] = []
