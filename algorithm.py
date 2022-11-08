@@ -56,7 +56,7 @@ class Hierarchy:
                 bad_triangles = []
                 for tpoly in triangulations:
                     if (is_inside(vertex, tpoly)):
-                        bad_triangles.append(tpoly)
+                        bad_triangles.append(tpoly) # we are appending in bad_triangles as that contains a vertex so that triangle has to be traingulated
 
                 p_set = []
 
