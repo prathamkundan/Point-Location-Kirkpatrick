@@ -1,4 +1,5 @@
 from geo_obj import *
+import copy
 
 class Hierarchy:
     def __init__(self) -> None:
@@ -148,20 +149,80 @@ class Hierarchy:
         
         return independent_set
 
-    def search_point(self, p: Point):
+    def search_point(self, p: Point,triangulations):
         if not is_inside(p, self.enclosing_triangle):
             return "External Region"
 
         cur = None
+        index = 0
+
         for triangle in self.triangulation:
             if PointInTriangle(p, triangle):
                 cur = triangle
+                plt.plot(p.x,p.y,'ro')
+                #plot_poly(cur,'r-') 
+                plot_polys(triangulations[index])
+                index+=1
                 break
     
         while self.adj[cur] != []:
             for triangle in self.adj[cur]:
                 if PointInTriangle(p, triangle):
                     cur = triangle
+                    plt.plot(p.x,p.y,'ro') 
+                    #plot_poly(cur,'r-')
+                    plot_polys(triangulations[index])
+                    index+=1
                     break
-        print(cur)
+        
+        plt.plot(p.x,p.y,'ro') 
+        #plot_poly(cur,'r-') 
+        plot_polys(triangulations[index])
+
+        if cur in self.poly_map:
+            cur = self.poly_map[cur]
         return self.regions.get(cur, "External Region")
+
+
+def Algorithm(regions: list[Polygon], region_names: list[str]):
+    H = Hierarchy()
+    tri = []
+
+    for region, name in zip(regions, region_names):
+        H.add_region(region, name)
+    
+    H.triangulate()
+    tri.append(copy.deepcopy(H.triangulation))
+
+    while (len(H.triangulation) > 3):
+        independent_set = H.select_independent_set()
+
+        print(independent_set)
+        print(H.triangulation)
+
+        triangulation = H.triangulation
+        tri.append(copy.deepcopy(H.triangulation))
+    
+        plot_polys(H.triangulation)
+        for polygon in H.polys:
+            plot_poly(polygon, 'r-')
+        for vertex in independent_set:
+            print(f"removing {vertex}")
+            H.remove_point(vertex)
+
+    tri.append(copy.deepcopy(H.triangulation))
+
+    plot_polys(H.triangulation)
+    print(len(H.adj.keys()))
+    tri.reverse()
+    for i in tri:
+        print(i)
+
+    while (True):
+        print("Enter the coordinates of the point to search: ")
+        x = int(input())
+        y = int(input())
+        print(H.search_point(Point(x, y),tri))
+        z = int(input("Enter 1 to continue the program or -1 to exit: "))
+        if(z == -1):
+            break
