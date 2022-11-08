@@ -17,6 +17,9 @@ class Point:
   
     def __add__(self, __o):
         return Point((self.x+__o.x), (self.y+__o.y))
+
+    def __sub__(self, __o):
+        return Point((self.x-__o.x), (self.y-__o.y))
     
     def __truediv__(self, __o: int):
         return Point(self.x/__o, self.y/__o)
@@ -29,14 +32,14 @@ class Polygon:
         # if (len(vertices) < 3):
         #     raise ValueError("Polygon of less than 3 sides is not possible")
             
-        self.V = set()
+        self.V = []
         temp = []
         for pt in vertices:
             if isinstance(pt, Point):
-                self.V.add(pt)
+                self.V.append(pt)
                 temp.append(pt)
             else:
-                self.V.add(Point(pt[0], pt[1]))
+                self.V.append(Point(pt[0], pt[1]))
                 temp.append(Point(pt[0], pt[1]))
         
         self.n = len(self.V)
@@ -46,7 +49,7 @@ class Polygon:
             self.E.append((temp[i], temp[(i+1)%self.n]))
     
     def get_ccw_vertices(self):
-        return [e[0] for e in self.E]
+        return get_ccw(list(self.V))
 
     def __repr__(self) -> str:
         return f"Polygon({self.V})"
@@ -78,7 +81,7 @@ def is_inside(A: Point, P: Polygon) -> bool:
         (ax_*ax_ + ay_*ay_) * (bx_*cy_-cx_*by_) -
         (bx_*bx_ + by_*by_) * (ax_*cy_-cx_*ay_) +
         (cx_*cx_ + cy_*cy_) * (ax_*by_-bx_*ay_)
-    ) >= 0)
+    ) > 0)
 
 def triangle_overlap(A: Polygon, B: Polygon):
     '''Checks if triangle A overlaps with triangle B'''
@@ -91,9 +94,13 @@ def triangle_overlap(A: Polygon, B: Polygon):
     return flag
          
 
-def get_ccw(pts: list[Point]):
+def get_ccw(pts: list[Point], interior = None):
     '''Sorts list of points in counter-clockwise order'''
     cent = sum(pts, Point(0,0))/len(pts)
+    
+    if interior is not None:
+        cent = interior
+    
     pts.sort(key = lambda a: (degrees(atan2(a.x - cent.x, a.y - cent.y)) + 360 % 360), reverse=True)
     return pts          
 

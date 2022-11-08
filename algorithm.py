@@ -8,15 +8,41 @@ class Hierarchy:
         self.poly_map = dict()
         self.regions = dict()
         self.triangulation = set()
-        self.enclosing_triangle = Polygon((100, 0),(-100, 100),(-100, -100))
+        self.enclosing_triangle = Polygon((150, 0),(-150, 150),(-150, -150))
     
     def add_region(self, poly: Polygon, name: str):
         self.regions[poly] = name
         self.polys.append(poly)
     
     def add_node(self, poly: Polygon):
-        self.nodes.add(poly)
+        self.nodes.add(poly) #here node is a polygon
         self.adj[poly] = []
+
+    def retriangulate(self, poly: Polygon):
+        triangulations = set()
+        vertices = [v for v in poly.V]
+        triangles_found = -1
+        while (triangles_found != 0):
+            triangles_found = 0
+            for index, vertex in enumerate(vertices):
+                next = vertices[(index+1)%len(vertices)]
+                prev = vertices[index-1]
+
+                v1 = next-vertex
+                v2 = prev-vertex
+
+                if (v1.x*v2.y - v1.y*v2.x > 0):
+                    ccw_vertices = get_ccw([vertex, prev, next])
+                    T = Polygon(*ccw_vertices)
+                    inside = [is_inside(v, T) for v in poly.V]
+                    if True in inside:
+                        continue
+                    else:
+                        vertices.pop(index)
+                        triangulations.add(T)
+                        triangles_found+=1
+        
+        return triangulations
 
     def triangulate_helper(self, polys: list[Polygon]):
         '''Bowyer-Watson Algorithm for triangulation'''
@@ -24,7 +50,8 @@ class Hierarchy:
         triangulations = set([super_t])
 
         for poly in polys:
-            vertices = poly.V
+            vertices = poly.get_ccw_vertices()
+            print(f"vertices in function: {vertices}")
             for vertex in vertices:    
                 bad_triangles = []
                 for tpoly in triangulations:
@@ -51,7 +78,7 @@ class Hierarchy:
                 for edge in p_set:
                     [x, y, z] = get_ccw([edge[0], edge[1], vertex])
                     triangulations.add(Polygon(x, y, z))
-        
+
         return triangulations
 
     def triangulate(self):
@@ -85,15 +112,14 @@ class Hierarchy:
                 v_set.add(v)
             self.triangulation.remove(tri)
 
-
         v_set.remove(p)
-        for vertex in self.enclosing_triangle.V: 
-            if vertex in v_set: v_set.remove(vertex)
+        v_list = get_ccw(list(v_set), p)
         
-        v_list = get_ccw(list(v_set))
-        
+        print("V-list : ",v_list)
+
+        new_triangles = self.retriangulate(Polygon(*v_list))
+
         # Retriangulating
-        new_triangles = self.triangulate_helper([Polygon(*v_list),])
         for tri in new_triangles: 
             self.triangulation.add(tri)
             self.add_node(tri)
