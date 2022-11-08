@@ -85,7 +85,7 @@ def is_inside(A: Point, P: Polygon) -> bool:
 
 def triangle_overlap(A: Polygon, B: Polygon):
     '''Checks if triangle A overlaps with triangle B'''
-    if A.n > 3 or B.n > 3: raise(ValueError("Funtion only works for triangles"))
+    if A.n > 3 or B.n > 3: raise(ValueError("Function only works for triangles"))
     
     flag = False
     for v_a in A.V:
@@ -111,4 +111,22 @@ def plot_poly(P: Polygon, ocol = "k-"):
 def plot_polys(T):
     for poly in T:
         plot_poly(poly)
+    # plt.plot([50], [40], marker="o", markersize=5)
     plt.show()
+
+
+def sign (p1, p2, p3):
+    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+
+
+def PointInTriangle (pt, poly):
+    [v1, v2, v3] = poly.V
+
+    d1 = sign(pt, v1, v2)
+    d2 = sign(pt, v2, v3)
+    d3 = sign(pt, v3, v1)
+
+    has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
+    has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
+
+    return not(has_neg and has_pos)
