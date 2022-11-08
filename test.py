@@ -25,13 +25,16 @@ def Algorithm(regions: list[Polygon], region_names: list[str]):
     plot_polys(H.triangulation)
     print(len(H.adj.keys()))
 
+    while (True):
+        x = int(input())
+        y = int(input())
+        print(H.search_point(Point(x, y)))
+
 if __name__ == "__main__":
-    P1 = Polygon((20, 0),(-20, 10),(-20, -20))
+    P1 = Polygon((20, 0),(-5, 41),(-20, 10),(-20, -20))
     P2 = Polygon((-75, 75),(-50, 25),(-75, -75))
 
 
-    plot_poly(P1, 'r-')   
-    regions = [P1,P2]
-    region_names = ["R1","R2"]
-
+    regions = [P2,P1]
+    region_names = ["R2","R1"]
     Algorithm(regions, region_names)

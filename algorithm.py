@@ -126,8 +126,8 @@ class Hierarchy:
 
         for new in new_triangles:
             for old in removed_triangles:
-                if triangle_overlap(new, old):
-                    self.adj[new].append(old)
+                # if triangle_overlap(new, old):
+                self.adj[new].append(old)
 
     def select_independent_set(self):
         v_set = set()
@@ -147,3 +147,21 @@ class Hierarchy:
                     for _vertex in tri.V: off_limits.add(_vertex)
         
         return independent_set
+
+    def search_point(self, p: Point):
+        if not is_inside(p, self.enclosing_triangle):
+            return "External Region"
+
+        cur = None
+        for triangle in self.triangulation:
+            if PointInTriangle(p, triangle):
+                cur = triangle
+                break
+    
+        while self.adj[cur] != []:
+            for triangle in self.adj[cur]:
+                if PointInTriangle(p, triangle):
+                    cur = triangle
+                    break
+        print(cur)
+        return self.regions.get(cur, "External Region")
