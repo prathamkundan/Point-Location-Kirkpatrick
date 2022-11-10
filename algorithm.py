@@ -20,6 +20,7 @@ class Hierarchy:
         self.adj[poly] = []
 
     def retriangulate(self, poly: Polygon):
+        '''Retriangulates polygon'''
         triangulations = set()
         vertices = [v for v in poly.V]
         triangles_found = -1
@@ -59,21 +60,18 @@ class Hierarchy:
                     if (is_inside(vertex, tpoly)):
                         bad_triangles.append(tpoly) 
 
-                p_set = []
-
-                for bpoly in bad_triangles:
-                    for edge in bpoly.E:
-                        flag = True
-                        for _bpoly in bad_triangles:
-                            if _bpoly == bpoly: continue
-                            for _edge in _bpoly.E:
-                                if edge == _edge or (edge[1],edge[0]) == _edge:
-                                    flag = False
-                                    break
-                            if flag == False: break
-                        if flag:
-                            p_set.append(edge)
-
+                edges = []
+                for tri in bad_triangles:
+                    for edge in tri.E:
+                        temp_e = edge
+                        if (temp_e[0].x == temp_e[1].x):
+                            if (temp_e[1].y < temp_e[0].y): temp_e = (temp_e[1], temp_e[0])
+                        elif (temp_e[1].x < temp_e[0].x):
+                            temp_e = (temp_e[1], temp_e[0])
+                        edges.append(temp_e)
+                
+                p_set = filter(lambda x: edges.count(x) == 1, edges)
+            
                 for bpoly in bad_triangles:
                     triangulations.remove(bpoly)
                 
@@ -84,7 +82,7 @@ class Hierarchy:
         return triangulations
 
     def triangulate(self):
-        
+        '''Triangulates polygon'''
         triangulations = self.triangulate_helper(self.polys)
 
         for poly in self.polys:
@@ -104,6 +102,7 @@ class Hierarchy:
         self.triangulation = triangulations
     
     def remove_point(self, p: Point):
+        '''Function to remove point from a triangulation and retriangulate the hole'''
         removed_triangles = set()
         for tri in self.triangulation:
             if p in tri.V: removed_triangles.add(tri)
@@ -132,6 +131,7 @@ class Hierarchy:
                 self.adj[new].append(old)
 
     def select_independent_set(self):
+        '''Function to select an independent set from a set of points'''
         v_set = set()
         independent_set = set()
         off_limits = set([i for i in self.enclosing_triangle.V])
@@ -151,41 +151,55 @@ class Hierarchy:
         return independent_set
 
     def search_point(self, p: Point,triangulations):
-        if not is_inside(p, self.enclosing_triangle):
+        '''Function to search point in hierarchy'''
+        if not point_in_triangle(p, self.enclosing_triangle):
             return "External Region"
 
         cur = None
         index = 0
 
         for triangle in self.triangulation:
-            if PointInTriangle(p, triangle):
+            if point_in_triangle(p, triangle):
                 cur = triangle
+
+                '''----- For plotting purposes -----'''
                 plt.plot(p.x,p.y,'ro')
-                #plot_poly(cur,'r-') 
-                plot_polys(triangulations[index])
+                plot_polys(triangulations[index], show= False)
+                plot_poly(triangle,'r-', show=True) 
                 index+=1
+                '''---------------------------------'''
+
                 break
     
         while self.adj[cur] != []:
             for triangle in self.adj[cur]:
-                if PointInTriangle(p, triangle):
-                    cur = triangle
+                if point_in_triangle(p, triangle):
+                    '''----- For plotting purposes -----'''
                     plt.plot(p.x,p.y,'ro') 
-                    #plot_poly(cur,'r-')
-                    plot_polys(triangulations[index])
+                    plot_polys(triangulations[index], show = False)
+                    plot_poly(triangle,'r-', show=True) 
                     index+=1
+                    '''---------------------------------'''
+                    cur = triangle
+                    
                     break
         
         plt.plot(p.x,p.y,'ro') 
-        #plot_poly(cur,'r-') 
-        plot_polys(triangulations[index])
+        plot_polys(triangulations[index], show = False)
 
         if cur in self.poly_map:
             cur = self.poly_map[cur]
+            plot_poly(cur, 'r-', show = False)
+        plt.show()
         return self.regions.get(cur, "External Region")
 
 
 def Algorithm(regions: list[Polygon], region_names: list[str]):
+    ''' 
+    Kirkpartick's Point Location Algorithm
+    -----
+    Preprocesses the input and runs search 
+    '''
     H = Hierarchy()
     tri = []
 
@@ -196,33 +210,33 @@ def Algorithm(regions: list[Polygon], region_names: list[str]):
     tri.append(copy.deepcopy(H.triangulation))
 
     while (len(H.triangulation) > 3):
+
+        '''----- For plotting puposes -----'''
+        tri.append(copy.deepcopy(H.triangulation))
+        plot_polys(H.triangulation, show=False)
+        for polygon in H.polys: plot_poly(polygon, 'r-', show=False)
+        plt.show()
+        '''--------------------------------'''
+
         independent_set = H.select_independent_set()
 
-        print(independent_set)
-        print(H.triangulation)
-
-        triangulation = H.triangulation
-        tri.append(copy.deepcopy(H.triangulation))
-    
-        plot_polys(H.triangulation)
-        for polygon in H.polys:
-            plot_poly(polygon, 'r-')
         for vertex in independent_set:
-            print(f"removing {vertex}")
+            print(f"Removing {vertex}")
             H.remove_point(vertex)
 
+     
+    '''----- For plotting puposes -----'''
     tri.append(copy.deepcopy(H.triangulation))
-
-    plot_polys(H.triangulation)
-    print(len(H.adj.keys()))
     tri.reverse()
-    for i in tri:
-        print(i)
+    plot_polys(H.triangulation, show=False)
+    for polygon in H.polys: plot_poly(polygon, 'r-', show=False)
+    plt.show()
+    '''--------------------------------'''
+
 
     while (True):
         print("Enter the coordinates of the point to search: ")
-        x = int(input())
-        y = int(input())
+        [x, y] = map(float,input().split())
         print(H.search_point(Point(x, y),tri))
         z = int(input("Enter 1 to continue the program or -1 to exit: "))
         if(z == -1):
