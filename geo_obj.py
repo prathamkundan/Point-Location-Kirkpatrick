@@ -58,7 +58,7 @@ class Polygon:
             self.E.append((temp[i], temp[(i+1)%self.n]))
     
     def get_ccw_vertices(self):
-        return get_ccw(list(self.V))
+        return self.V
 
     def __repr__(self) -> str:
         return f"Polygon({self.V})"
@@ -73,7 +73,7 @@ class Polygon:
         return hash(self.__repr__())
     
 def is_inside(A: Point, P: Polygon) -> bool:
-    '''Checks is point A is inside a triangle P'''
+    '''Checks is point A is inside the circumcircle of triangle P'''
 
     if P.n > 3: raise(ValueError("Funtion only works for triangles"))
 
@@ -90,20 +90,9 @@ def is_inside(A: Point, P: Polygon) -> bool:
         (bx_*bx_ + by_*by_) * (ax_*cy_-cx_*ay_) +
         (cx_*cx_ + cy_*cy_) * (ax_*by_-bx_*ay_)
     ) > 0)
-
-def triangle_overlap(A: Polygon, B: Polygon):
-    '''Checks if triangle A overlaps with triangle B'''
-
-    if A.n > 3 or B.n > 3: raise(ValueError("Function only works for triangles"))
-    
-    flag = False
-    for v_a in A.V:
-        flag = flag or is_inside(v_a, B) 
-    
-    return flag
          
 
-def get_ccw(pts: list[Point], interior = None):
+def get_ccw(pts: list[Point], interior = None)->list[Point]:
     '''Sorts list of points in counter-clockwise order'''
 
     cent = sum(pts, Point(0,0))/len(pts)
@@ -128,7 +117,7 @@ def plot_polys(T: set[Polygon], show = True):
         plot_poly(poly, show = False)
     if (show): plt.show()
 
-def point_in_triangle (pt: Point, poly: Polygon):
+def point_in_triangle (pt: Point, poly: Polygon)->bool:
     '''Checks if point is in triangle'''
     def sign (p1, p2, p3):
         return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
