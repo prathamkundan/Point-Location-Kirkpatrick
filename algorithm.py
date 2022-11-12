@@ -36,8 +36,8 @@ class Hierarchy:
                 if (v1.x*v2.y - v1.y*v2.x > 0):
                     ccw_vertices = get_ccw([vertex, prev, next])
                     T = Polygon(*ccw_vertices)
-                    inside = [is_inside(v, T) for v in poly.V]
-                    if True in inside:
+                    inside = [point_in_triangle(v, T) for v in vertices]
+                    if inside.count(True) > 3:
                         continue
                     else:
                         vertices.pop(index)
@@ -164,8 +164,9 @@ class Hierarchy:
 
                 '''----- For plotting purposes -----'''
                 plt.plot(p.x,p.y,'ro')
-                plot_polys(triangulations[index], show= False)
-                plot_poly(triangle,'r-', show=True) 
+                # plot_polys(triangulations[index], show= False)
+                plot_poly(self.enclosing_triangle,'b-', show=False) 
+                plot_poly(triangle,'r-') 
                 index+=1
                 '''---------------------------------'''
 
@@ -176,7 +177,8 @@ class Hierarchy:
                 if point_in_triangle(p, triangle):
                     '''----- For plotting purposes -----'''
                     plt.plot(p.x,p.y,'ro') 
-                    plot_polys(triangulations[index], show = False)
+                    # plot_polys(triangulations[index], show = False)
+                    plot_poly(self.enclosing_triangle,'b-', show=False) 
                     plot_poly(triangle,'r-', show=True) 
                     index+=1
                     '''---------------------------------'''
@@ -185,11 +187,11 @@ class Hierarchy:
                     break
         
         plt.plot(p.x,p.y,'ro') 
-        plot_polys(triangulations[index], show = False)
+        plot_polys(triangulations[-1], show = False)
 
         if cur in self.poly_map:
             cur = self.poly_map[cur]
-            plot_poly(cur, 'r-', show = False)
+            plot_poly(cur, 'g-', show = False)
         plt.show()
         return self.regions.get(cur, "External Region")
 
@@ -237,7 +239,7 @@ def Algorithm(regions: list[Polygon], region_names: list[str]):
     while (True):
         print("Enter the coordinates of the point to search: ")
         [x, y] = map(float,input().split())
-        print(H.search_point(Point(x, y),tri))
-        z = int(input("Enter 1 to continue the program or -1 to exit: "))
-        if(z == -1):
+        print("Point is in: ", H.search_point(Point(x, y),tri))
+        z = input("Enter 1 to continue the program or -1 to exit: ")
+        if(z == '-1'):
             break
